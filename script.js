@@ -407,7 +407,8 @@ class ModernCarousel {
 
     setupResizeHandler() {
         let resizeTimeout;
-        window.addEventListener('resize', () => {
+
+        const handleViewportChange = () => {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
                 this.carousels.forEach(carousel => {
@@ -418,7 +419,15 @@ class ModernCarousel {
                     }
                 });
             }, 250);
-        });
+        };
+
+        window.addEventListener('resize', handleViewportChange);
+        window.addEventListener('orientationchange', handleViewportChange);
+
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', handleViewportChange);
+            window.visualViewport.addEventListener('scroll', handleViewportChange);
+        }
     }
 
     adjustTestimonialSpeed(carousel) {
