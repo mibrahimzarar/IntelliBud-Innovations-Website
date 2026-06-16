@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IntelliBud Innovations - Building Tomorrow's Software Solutions</title>
+    <title>IntelliBud Innovations - From Imagination to Innovation</title>
     
 
 
@@ -12,6 +12,9 @@
     <link rel="apple-touch-icon" href="images/IntelliBud Dark.jpeg">
     <link rel="shortcut icon" type="image/png" href="images/LOGO Plain-png.png">
     
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -22,23 +25,35 @@
     <!-- End Google Tag Manager (noscript) -->
      
     <!-- Navigation -->
-    <nav class="navbar">
+    <nav class="navbar" id="navbar">
+        <div class="nav-glow"></div>
+        <div class="nav-shine"></div>
         <div class="nav-container">
             <div class="nav-logo">
-                <img src="images/IntelliBud Dark.jpeg" alt="IntelliBud Innovations Logo" class="logo-image">
-                <span class="logo-text">IntelliBud Innovations</span>
+                <div class="nav-logo-ring">
+                    <img src="images/IntelliBud Dark.jpeg" alt="IntelliBud Innovations Logo" class="logo-image">
+                </div>
+                <div class="nav-brand-text">
+                    <span class="logo-text">IntelliBud</span>
+                    <span class="logo-subtext">Innovations</span>
+                </div>
             </div>
             <div class="nav-menu" id="nav-menu">
-                <a href="#home" class="nav-link">Home</a>
-                <a href="#about" class="nav-link">About</a>
-                <a href="#products" class="nav-link">Products</a>
-                <a href="#contact" class="nav-link">Contact</a>
+                <div class="nav-links-wrap">
+                    <a href="#home" class="nav-link">Home</a>
+                    <a href="#about" class="nav-link">About</a>
+                    <a href="#products" class="nav-link">Products</a>
+                </div>
+                <a href="#contact" class="nav-cta">
+                    <span>Contact</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
-            <div class="nav-toggle" id="nav-toggle">
+            <button class="nav-toggle" id="nav-toggle" type="button" aria-label="Toggle navigation menu">
                 <span class="bar"></span>
                 <span class="bar"></span>
                 <span class="bar"></span>
-            </div>
+            </button>
         </div>
     </nav>
 
@@ -47,31 +62,53 @@
         <div class="hero-container">
             <div class="hero-content">
                 <h1 class="hero-title">
-                    <span class="gradient-text">Building Tomorrow's</span>
-                    <span class="hero-subtitle">Software Solutions</span>
+                    <span class="hero-title-line">
+                        <span class="gradient-text">From Imagination</span>
+                    </span>
+                    <span class="hero-subtitle">to Innovation</span>
                 </h1>
                 <p class="hero-description">
-                    At IntelliBud Innovations, we craft cutting-edge web and mobile applications 
-                    that transform ideas into powerful digital experiences. We don't just code - we innovate.
+                    IntelliBud Innovations designs, builds, and ships its own web and mobile
+                    applications — turning bold ideas into software people use every day.
                 </p>
                 <div class="hero-buttons">
-                    <a href="#products" class="btn btn-primary">Explore Our Work</a>
-                    <a href="#contact" class="btn btn-secondary">Get In Touch</a>
+                    <a href="#products" class="btn btn-primary hero-btn hero-btn-primary">
+                        <span class="hero-btn-glow"></span>
+                        <span class="hero-btn-shine"></span>
+                        <span class="hero-btn-content">
+                            <span>Explore Our Products</span>
+                            <span class="hero-btn-icon">
+                                <i class="fas fa-arrow-right"></i>
+                            </span>
+                        </span>
+                    </a>
+                    <a href="#contact" class="btn btn-secondary hero-btn">
+                        <span>Get In Touch</span>
+                    </a>
                 </div>
             </div>
             <div class="hero-visual">
                 <div class="floating-cards">
                     <div class="floating-card card-1">
-                        <i class="fas fa-mobile-alt"></i>
-                        <span>Mobile Apps</span>
+                        <div class="floating-card-glow"></div>
+                        <div class="floating-card-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <span class="floating-card-label">Mobile Apps</span>
                     </div>
                     <div class="floating-card card-2">
-                        <i class="fas fa-globe"></i>
-                        <span>Web Apps</span>
+                        <div class="floating-card-glow"></div>
+                        <div class="floating-card-icon">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <span class="floating-card-label">Web Apps</span>
                     </div>
                     <div class="floating-card card-3">
-                        <i class="fas fa-rocket"></i>
-                        <span>Innovation</span>
+                        <div class="floating-card-glow"></div>
+                        <div class="floating-card-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <span class="floating-card-label">Innovation</span>
                     </div>
                 </div>
             </div>
@@ -84,42 +121,52 @@
 
     <!-- About Section -->
     <section id="about" class="about">
+        <div class="about-glow about-glow-left"></div>
+        <div class="about-glow about-glow-right"></div>
         <div class="container">
-            <div class="section-header">
+            <div class="section-header about-header">
                 <h2 class="section-title">Our Vision</h2>
+                <div class="section-divider">
+                    <span class="section-divider-line"></span>
+                    <span class="section-divider-dot"></span>
+                    <span class="section-divider-line"></span>
+                </div>
                 <p class="section-subtitle">Pioneering the future of digital innovation</p>
             </div>
             <div class="about-content">
-                <div class="about-text">
-                    <h3>Where Innovation Meets Excellence</h3>
-                    <p>
-                        At IntelliBud Innovations, we don't just build software—we architect digital experiences that 
-                        redefine possibilities. As a visionary technology company, we're committed to developing 
-                        groundbreaking products that seamlessly blend cutting-edge innovation with intuitive design, 
-                        creating solutions that anticipate tomorrow's needs today.
+                <div class="about-intro">
+                    <h3 class="about-headline">Where Innovation Meets Excellence</h3>
+                    <p class="about-lead">
+                        IntelliBud Innovations is a product-first technology company. We don't take on client work or
+                        freelance projects — we focus entirely on building and evolving our own portfolio of software
+                        products. Every application we ship is designed in-house, from concept to launch, blending
+                        cutting-edge innovation with intuitive design.
                     </p>
-                    <div class="vision-points">
-                        <div class="vision-point">
+                </div>
+                <div class="vision-points">
+                    <div class="vision-point">
+                        <div class="vision-point-glow"></div>
+                        <div class="vision-point-icon">
                             <i class="fas fa-lightbulb"></i>
-                            <div>
-                                <h4>Intelligent Innovation</h4>
-                                <p>Transforming complex challenges into breakthrough solutions through creative thinking and strategic problem-solving</p>
-                            </div>
                         </div>
-                        <div class="vision-point">
+                        <h4>Intelligent Innovation</h4>
+                        <p>Transforming complex challenges into breakthrough solutions through creative thinking and strategic problem-solving</p>
+                    </div>
+                    <div class="vision-point">
+                        <div class="vision-point-glow"></div>
+                        <div class="vision-point-icon">
                             <i class="fas fa-cogs"></i>
-                            <div>
-                                <h4>Next-Generation Technology</h4>
-                                <p>Harnessing emerging technologies and advanced frameworks to build scalable, future-proof applications</p>
-                            </div>
                         </div>
-                        <div class="vision-point">
+                        <h4>Next-Generation Technology</h4>
+                        <p>Harnessing emerging technologies and advanced frameworks to build scalable, future-proof applications</p>
+                    </div>
+                    <div class="vision-point">
+                        <div class="vision-point-glow"></div>
+                        <div class="vision-point-icon">
                             <i class="fas fa-users"></i>
-                            <div>
-                                <h4>Human-Centered Excellence</h4>
-                                <p>Designing with empathy and precision to deliver exceptional user experiences that inspire and engage</p>
-                            </div>
                         </div>
+                        <h4>Human-Centered Excellence</h4>
+                        <p>Designing with empathy and precision to deliver exceptional user experiences that inspire and engage</p>
                     </div>
                 </div>
             </div>
@@ -140,6 +187,7 @@
                 <div class="product-card">
                     <div class="product-image">
                         <img src="images/Products/Sunnah Way.png" alt="Sunnah Way App Logo" class="logo-img">
+                        <div class="product-glow"></div>
                     </div>
                     <div class="product-content">
                         <h3>Sunnah Way App</h3>
@@ -201,6 +249,7 @@
                 <div class="product-card">
                     <div class="product-image">
                         <img src="images/Products/Hotel Deck.jpg" alt="Hotel Deck Logo" class="logo-img">
+                        <div class="product-glow"></div>
                     </div>
                     <div class="product-content">
                         <h3>Hotel Deck</h3>
@@ -218,62 +267,49 @@
     <section id="contact" class="contact">
         <div class="container">
             <div class="section-header">
-                <h2 class="section-title">Let's Build Something Amazing</h2>
-                <p class="section-subtitle">Ready to turn your vision into reality?</p>
+                <h2 class="section-title">Get In Touch</h2>
+                <p class="section-subtitle">Questions about our products? Reach out — we'd love to hear from you.</p>
             </div>
-            <div class="contact-content">
-                <div class="contact-info">
-                    <div class="contact-item">
+            <div class="contact-actions">
+                <a href="mailto:info@intellibud.org" class="contact-btn contact-btn-email">
+                    <span class="contact-btn-icon">
                         <i class="fas fa-envelope"></i>
-                        <div>
-                            <h4>Email</h4>
-                            <p>info@intellibud.org</p>
-                        </div>
-                    </div>
-                    <div class="contact-item">
-                        <i class="fas fa-phone"></i>
-                        <div>
-                            <h4>Phone</h4>
-                            <p>+92331 7290074</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="contact-form">
-                    <form>
-                        <div class="form-group">
-                            <input type="text" placeholder="Your Name" required>
-                        </div>
-                        <div class="form-group">
-                            <input type="email" placeholder="Your Email" required>
-                        </div>
-                        <div class="form-group">
-                            <textarea placeholder="Your Message" rows="5" required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Send Message</button>
-                    </form>
-                </div>
+                    </span>
+                    <span class="contact-btn-text">
+                        <span class="contact-btn-label">Email Us</span>
+                        <span class="contact-btn-value">info@intellibud.org</span>
+                    </span>
+                    <i class="fas fa-arrow-right contact-btn-arrow"></i>
+                </a>
+                <a href="https://wa.me/923317290074" target="_blank" rel="noopener noreferrer" class="contact-btn contact-btn-whatsapp">
+                    <span class="contact-btn-icon">
+                        <i class="fab fa-whatsapp"></i>
+                    </span>
+                    <span class="contact-btn-text">
+                        <span class="contact-btn-label">WhatsApp</span>
+                        <span class="contact-btn-value">+92 331 7290074</span>
+                    </span>
+                    <i class="fas fa-arrow-right contact-btn-arrow"></i>
+                </a>
             </div>
         </div>
     </section>
 
     <!-- Footer -->
     <footer class="footer">
+        <div class="footer-glow"></div>
         <div class="container">
-            <div class="footer-content">
-                <div class="footer-logo">
+            <div class="footer-brand">
+                <div class="footer-logo-wrap">
                     <img src="images/IntelliBud Dark.jpeg" alt="IntelliBud Innovations Logo" class="footer-logo-image">
-                    <span>IntelliBud Innovations</span>
                 </div>
-                <div class="footer-links">
-                    <a href="#home">Home</a>
-                    <a href="#about">About</a>
-                    <a href="#products">Products</a>
-                    <a href="#contact">Contact</a>
-                </div>
-                <div class="footer-social">
-                   <!--<a href="#"><i class="fab fa-linkedin"></i></a>-->
-                   <!--<a href="#"><i class="fab fa-github"></i></a>-->
-                </div>
+                <h3 class="footer-brand-name">IntelliBud Innovations</h3>
+                <p class="footer-tagline">From Imagination to Innovation</p>
+            </div>
+            <div class="footer-divider">
+                <span class="footer-divider-line"></span>
+                <span class="footer-divider-dot"></span>
+                <span class="footer-divider-line"></span>
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2026 IntelliBud Innovations. All rights reserved.</p>
@@ -282,19 +318,24 @@
     </footer>
 
     <!-- Logo Preview Modal -->
-    <div id="logo-modal" class="logo-modal">
+    <div id="logo-modal" class="logo-modal" aria-hidden="true">
         <div class="logo-modal-backdrop"></div>
-        <div class="logo-modal-content">
-            <button class="logo-modal-close" aria-label="Close logo preview">
+        <div class="logo-modal-content" role="dialog" aria-modal="true" aria-labelledby="logo-modal-title">
+            <button class="logo-modal-close" type="button" aria-label="Close logo preview">
                 <i class="fas fa-times"></i>
             </button>
             <div class="logo-preview-container">
-                <div class="logo-preview-image">
+                <div class="logo-preview-ring">
                     <img src="images/IntelliBud Dark.jpeg" alt="IntelliBud Innovations Logo" class="preview-logo">
                 </div>
                 <div class="logo-preview-info">
-                    <h2 class="logo-preview-title">IntelliBud Innovations</h2>
-                    <p class="logo-preview-subtitle">Building Tomorrow's Software Solutions</p>
+                    <h2 id="logo-modal-title" class="logo-preview-title">IntelliBud Innovations</h2>
+                    <div class="logo-preview-divider">
+                        <span class="logo-preview-divider-line"></span>
+                        <span class="logo-preview-divider-dot"></span>
+                        <span class="logo-preview-divider-line"></span>
+                    </div>
+                    <p class="logo-preview-subtitle">From Imagination to Innovation</p>
                 </div>
             </div>
         </div>

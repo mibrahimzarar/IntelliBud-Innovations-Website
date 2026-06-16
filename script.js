@@ -17,205 +17,345 @@ class ModernCarousel {
 
     init() {
         this.carousels.forEach(carousel => {
-            this.setupCarousel(carousel);
+            if (carousel.classList.contains('products-carousel')) {
+                this.setupProductsCarousel(carousel);
+            } else {
+                this.setupTestimonialsCarousel(carousel);
+            }
         });
-        
-        // Performance optimization
+
         this.setupIntersectionObserver();
         this.setupResizeHandler();
     }
 
-    setupCarousel(carousel) {
-        const cards = carousel.querySelectorAll('.product-card, .testimonial-card');
-        const isProductsCarousel = carousel.classList.contains('products-carousel');
-        
-        // Only clone cards for testimonials carousel (auto-scroll), not products carousel
-        if (!isProductsCarousel) {
-            cards.forEach(card => {
-                const clone = card.cloneNode(true);
-                carousel.appendChild(clone);
-            });
+    getProductsDuration() {
+        const w = window.innerWidth;
+        if (w < 768) return 45000;
+        if (w < 1024) return 55000;
+        return 70000;
+    }
 
-            // Add smooth pause/resume on hover for testimonials only
-            carousel.addEventListener('mouseenter', () => {
-                carousel.style.animationPlayState = 'paused';
-            });
+    setupProductsCarousel(carousel) {
+        const originalCards = [...carousel.querySelectorAll('.product-card')];
+        originalCards.forEach(card => {
+            const clone = card.cloneNode(true);
+            clone.setAttribute('aria-hidden', 'true');
+            clone.classList.add('product-card-clone');
+            carousel.appendChild(clone);
+        });
 
-            carousel.addEventListener('mouseleave', () => {
-                carousel.style.animationPlayState = 'running';
-            });
+        const container = carousel.closest('.carousel-container');
+        let scrollWrap = container.querySelector('.carousel-scroll');
+        if (!scrollWrap) {
+            scrollWrap = document.createElement('div');
+            scrollWrap.className = 'carousel-scroll products-carousel-scroll';
+            container.insertBefore(scrollWrap, container.firstChild);
+            scrollWrap.appendChild(carousel);
+        } else {
+            scrollWrap.classList.add('products-carousel-scroll');
+            if (carousel.parentElement !== scrollWrap) {
+                scrollWrap.appendChild(carousel);
+            }
         }
 
-        // Ensure inner scroll wrapper exists and contains the track
+        carousel.style.animation = 'none';
+        carousel.style.transform = '';
+
+        const state = {
+            autoScrollActive: true,
+            isVisible: true,
+            isLooping: false,
+            isAutoScrolling: false,
+            pxPerMs: 0,
+            halfWidth: 0,
+            resumeTimeout: null,
+            lastTime: 0,
+            rafId: null,
+            pointerMoved: false,
+            pointerStartX: 0
+        };
+        carousel._scrollState = state;
+
+        const measure = () => {
+            state.halfWidth = carousel.scrollWidth / 2;
+            state.pxPerMs = state.halfWidth > 0 ? state.halfWidth / this.getProductsDuration() : 0;
+        };
+
+        const loopScroll = () => {
+            if (state.isLooping || state.halfWidth <= 0) return;
+            const sl = scrollWrap.scrollLeft;
+            if (sl >= state.halfWidth - 1) {
+                state.isLooping = true;
+                scrollWrap.scrollLeft = sl - state.halfWidth;
+                state.isLooping = false;
+            } else if (sl <= 0) {
+                state.isLooping = true;
+                scrollWrap.scrollLeft = sl + state.halfWidth;
+                state.isLooping = false;
+            }
+        };
+
+        const pauseAuto = () => {
+            state.autoScrollActive = false;
+            clearTimeout(state.resumeTimeout);
+        };
+
+        const scheduleResume = (delay = 800) => {
+            if (carousel.dataset.userStopped === 'true') return;
+            clearTimeout(state.resumeTimeout);
+            state.resumeTimeout = setTimeout(() => {
+                state.autoScrollActive = true;
+                state.lastTime = performance.now();
+            }, delay);
+        };
+
+        const resumeAuto = () => {
+            state.autoScrollActive = true;
+            state.lastTime = performance.now();
+            clearTimeout(state.resumeTimeout);
+        };
+
+        const tick = (now) => {
+            if (!state.lastTime) state.lastTime = now;
+            const delta = now - state.lastTime;
+            state.lastTime = now;
+
+            if (state.autoScrollActive && state.isVisible &&
+                carousel.dataset.userStopped !== 'true' && state.halfWidth > 0) {
+                state.isAutoScrolling = true;
+                scrollWrap.scrollLeft += state.pxPerMs * delta;
+                loopScroll();
+                requestAnimationFrame(() => {
+                    state.isAutoScrolling = false;
+                });
+            }
+
+            state.rafId = requestAnimationFrame(tick);
+        };
+
+        carousel._remeasure = measure;
+
+        requestAnimationFrame(() => {
+            measure();
+            scrollWrap.scrollLeft = 0;
+            state.lastTime = performance.now();
+            state.rafId = requestAnimationFrame(tick);
+        });
+
+        scrollWrap.addEventListener('scroll', () => {
+            loopScroll();
+            if (!state.isLooping && !state.isAutoScrolling) {
+                pauseAuto();
+                scheduleResume();
+            }
+        }, { passive: true });
+
+        scrollWrap.addEventListener('wheel', (e) => {
+            const isHorizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey;
+            if (isHorizontal) {
+                pauseAuto();
+                scheduleResume(1000);
+            }
+        }, { passive: true });
+
+        scrollWrap.addEventListener('touchstart', () => pauseAuto(), { passive: true });
+        scrollWrap.addEventListener('touchend', () => scheduleResume(800), { passive: true });
+
+        scrollWrap.addEventListener('pointerdown', (e) => {
+            state.pointerStartX = e.clientX;
+            state.pointerMoved = false;
+            pauseAuto();
+        });
+
+        scrollWrap.addEventListener('pointermove', (e) => {
+            if (Math.abs(e.clientX - state.pointerStartX) > 8) {
+                state.pointerMoved = true;
+            }
+        }, { passive: true });
+
+        scrollWrap.addEventListener('pointerup', () => scheduleResume(600));
+
+        carousel.addEventListener('click', (e) => {
+            if (state.pointerMoved) return;
+
+            const card = e.target.closest('.product-card');
+            if (!card) return;
+
+            if (card.classList.contains('is-selected')) {
+                carousel.querySelectorAll('.product-card').forEach(c => c.classList.remove('is-selected'));
+                carousel.classList.remove('is-paused', 'user-stopped');
+                carousel.dataset.userStopped = 'false';
+                resumeAuto();
+                return;
+            }
+
+            carousel.querySelectorAll('.product-card').forEach(c => c.classList.remove('is-selected'));
+            card.classList.add('is-selected');
+            carousel.classList.add('is-paused', 'user-stopped');
+            carousel.dataset.userStopped = 'true';
+            pauseAuto();
+        });
+    }
+
+    setProductsSpeed(carousel) {
+        if (carousel._remeasure) carousel._remeasure();
+    }
+
+    setupTestimonialsCarousel(carousel) {
+        const cards = carousel.querySelectorAll('.testimonial-card');
+
+        cards.forEach(card => {
+            const clone = card.cloneNode(true);
+            carousel.appendChild(clone);
+        });
+
+        carousel.addEventListener('mouseenter', () => {
+            carousel.style.animationPlayState = 'paused';
+        });
+
+        carousel.addEventListener('mouseleave', () => {
+            if (carousel.dataset.userStopped !== 'true') {
+                carousel.style.animationPlayState = 'running';
+            }
+        });
+
         const container = carousel.closest('.carousel-container');
         let scrollWrap = container.querySelector('.carousel-scroll');
         if (!scrollWrap) {
             scrollWrap = document.createElement('div');
             scrollWrap.className = 'carousel-scroll';
-            // insert as first child and move track inside
             container.insertBefore(scrollWrap, container.firstChild);
             scrollWrap.appendChild(carousel);
         } else if (carousel.parentElement !== scrollWrap) {
             scrollWrap.appendChild(carousel);
         }
 
-        // Add touch/swipe support for mobile (use inner scroll wrapper as target)
         this.addTouchSupport(carousel, scrollWrap);
+        this.setupScrollControls(carousel, scrollWrap, container, false);
+    }
 
-        // Setup scroll behaviors based on carousel type
-        if (container && scrollWrap) {
-            let resumeTimeout;
+    setupScrollControls(carousel, scrollWrap, container, isProductsCarousel) {
+        if (isProductsCarousel) return;
 
-            const setInteracting = (isInteracting) => {
-                carousel.dataset.userInteracting = isInteracting ? 'true' : 'false';
-            };
+        let resumeTimeout;
 
-            const pause = () => {
-                // Cancel any pending resume to prevent premature animation restart
-                clearTimeout(resumeTimeout);
-                setInteracting(true);
-                carousel.classList.add('is-paused');
-                carousel.style.animationPlayState = 'paused';
-            };
+        const setInteracting = (isInteracting) => {
+            carousel.dataset.userInteracting = isInteracting ? 'true' : 'false';
+        };
 
-            const scheduleResume = (delay = 400) => {
-                clearTimeout(resumeTimeout);
-                resumeTimeout = setTimeout(() => {
-                    setInteracting(false);
-                    carousel.classList.remove('is-paused');
-                    carousel.style.animationPlayState = 'running';
-                }, delay);
-            };
+        const pause = () => {
+            clearTimeout(resumeTimeout);
+            setInteracting(true);
+            carousel.classList.add('is-paused');
+            carousel.style.animationPlayState = 'paused';
+        };
 
-            // Infinite manual scroll loop logic on inner wrapper - only for testimonials
-            const loopScrollIfNeeded = () => {
-                if (isProductsCarousel) return; // No looping for products carousel
-                
-                const contentWidth = carousel.scrollWidth;
-                const halfWidth = contentWidth / 2;
-                const maxLeft = contentWidth - scrollWrap.clientWidth;
-                const sl = scrollWrap.scrollLeft;
-                const epsilon = Math.max(halfWidth * 0.05, 16); // 5% or at least 16px for mobile
-                // Smoothly wrap instead of jumping
-                if (sl <= epsilon) {
-                    scrollWrap.scrollTo({ left: sl + halfWidth, behavior: 'smooth' });
-                } else if (sl >= maxLeft - epsilon) {
-                    scrollWrap.scrollTo({ left: sl - halfWidth, behavior: 'smooth' });
-                }
-            };
+        const scheduleResume = (delay = 400) => {
+            clearTimeout(resumeTimeout);
+            resumeTimeout = setTimeout(() => {
+                setInteracting(false);
+                carousel.classList.remove('is-paused');
+                carousel.style.animationPlayState = 'running';
+            }, delay);
+        };
 
-            // Initialize starting position
-            requestAnimationFrame(() => {
-                if (isProductsCarousel) {
-                    // Products carousel starts at the beginning
-                    scrollWrap.scrollLeft = 0;
-                } else {
-                    // Testimonials carousel starts at middle for seamless looping
-                    const halfWidth = carousel.scrollWidth / 2;
-                    if (halfWidth > 0) {
-                        scrollWrap.scrollLeft = halfWidth;
-                    }
-                }
-            });
-
-            // Scroll-based pause/resume (horizontal scroll on inner wrapper)
-            scrollWrap.addEventListener('scroll', () => {
-                pause();
-                loopScrollIfNeeded();
-                // Debounced resume after scrolling settles
-                scheduleResume(500);
-            }, { passive: true });
-
-            // Ensure continuous pausing while finger moves (mobile)
-            scrollWrap.addEventListener('touchmove', () => {
-                pause();
-                loopScrollIfNeeded();
-            }, { passive: true });
-
-            // Touch interactions on container
-            scrollWrap.addEventListener('touchstart', () => {
-                pause();
-            }, { passive: true });
-
-            scrollWrap.addEventListener('touchend', () => {
-                // Allow momentum to finish before resuming
-                scheduleResume(600);
-            }, { passive: true });
-
-            // Pointer interactions (mouse or touch)
-            scrollWrap.addEventListener('pointerdown', () => {
-                pause();
-            });
-            scrollWrap.addEventListener('pointerup', () => {
-                scheduleResume(400);
-            });
-
-            // Trackpad/mouse wheel horizontal scroll
-            scrollWrap.addEventListener('wheel', (e) => {
-                // Pause only when horizontal scroll happens
-                if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-                    pause();
-                    loopScrollIfNeeded();
-                    scheduleResume(600);
-                }
-            }, { passive: true });
-
-            // Create elegant desktop scroll buttons (attach to static container)
-            const existingLeft = container.querySelector('.carousel-btn.left');
-            const existingRight = container.querySelector('.carousel-btn.right');
-            if (!existingLeft && !existingRight) {
-                const leftBtn = document.createElement('button');
-                leftBtn.className = 'carousel-btn left';
-                leftBtn.setAttribute('aria-label', 'Scroll left');
-                leftBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
-
-                const rightBtn = document.createElement('button');
-                rightBtn.className = 'carousel-btn right';
-                rightBtn.setAttribute('aria-label', 'Scroll right');
-                rightBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
-
-                container.appendChild(leftBtn);
-                container.appendChild(rightBtn);
-
-                const scrollAmount = 380; // approx one card width
-                let holdInterval;
-
-                const startHoldScroll = (direction) => {
-                    pause();
-                    clearInterval(holdInterval);
-                    holdInterval = setInterval(() => {
-                        scrollWrap.scrollBy({ left: direction * 20, behavior: 'smooth' });
-                        loopScrollIfNeeded();
-                    }, 16); // ~60fps small increments
-                };
-
-                const stopHoldScroll = () => {
-                    clearInterval(holdInterval);
-                    scheduleResume(250);
-                };
-
-                leftBtn.addEventListener('click', () => {
-                    pause();
-                    scrollWrap.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
-                    loopScrollIfNeeded();
-                    scheduleResume(350);
-                });
-
-                rightBtn.addEventListener('click', () => {
-                    pause();
-                    scrollWrap.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-                    loopScrollIfNeeded();
-                    scheduleResume(350);
-                });
-
-                // Press-and-hold for continuous scroll
-                leftBtn.addEventListener('pointerdown', () => startHoldScroll(-1));
-                rightBtn.addEventListener('pointerdown', () => startHoldScroll(1));
-                ['pointerup','pointerleave'].forEach(evt => {
-                    leftBtn.addEventListener(evt, stopHoldScroll);
-                    rightBtn.addEventListener(evt, stopHoldScroll);
-                });
+        const loopScrollIfNeeded = () => {
+            const contentWidth = carousel.scrollWidth;
+            const halfWidth = contentWidth / 2;
+            const maxLeft = contentWidth - scrollWrap.clientWidth;
+            const sl = scrollWrap.scrollLeft;
+            const epsilon = Math.max(halfWidth * 0.05, 16);
+            if (sl <= epsilon) {
+                scrollWrap.scrollTo({ left: sl + halfWidth, behavior: 'smooth' });
+            } else if (sl >= maxLeft - epsilon) {
+                scrollWrap.scrollTo({ left: sl - halfWidth, behavior: 'smooth' });
             }
+        };
+
+        requestAnimationFrame(() => {
+            const halfWidth = carousel.scrollWidth / 2;
+            if (halfWidth > 0) {
+                scrollWrap.scrollLeft = halfWidth;
+            }
+        });
+
+        scrollWrap.addEventListener('scroll', () => {
+            pause();
+            loopScrollIfNeeded();
+            scheduleResume(500);
+        }, { passive: true });
+
+        scrollWrap.addEventListener('touchmove', () => {
+            pause();
+            loopScrollIfNeeded();
+        }, { passive: true });
+
+        scrollWrap.addEventListener('touchstart', () => pause(), { passive: true });
+        scrollWrap.addEventListener('touchend', () => scheduleResume(600), { passive: true });
+        scrollWrap.addEventListener('pointerdown', () => pause());
+        scrollWrap.addEventListener('pointerup', () => scheduleResume(400));
+
+        scrollWrap.addEventListener('wheel', (e) => {
+            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+                pause();
+                loopScrollIfNeeded();
+                scheduleResume(600);
+            }
+        }, { passive: true });
+
+        const existingLeft = container.querySelector('.carousel-btn.left');
+        const existingRight = container.querySelector('.carousel-btn.right');
+        if (!existingLeft && !existingRight) {
+            const leftBtn = document.createElement('button');
+            leftBtn.className = 'carousel-btn left';
+            leftBtn.setAttribute('aria-label', 'Scroll left');
+            leftBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+
+            const rightBtn = document.createElement('button');
+            rightBtn.className = 'carousel-btn right';
+            rightBtn.setAttribute('aria-label', 'Scroll right');
+            rightBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+
+            container.appendChild(leftBtn);
+            container.appendChild(rightBtn);
+
+            const scrollAmount = 380;
+            let holdInterval;
+
+            const startHoldScroll = (direction) => {
+                pause();
+                clearInterval(holdInterval);
+                holdInterval = setInterval(() => {
+                    scrollWrap.scrollBy({ left: direction * 20, behavior: 'smooth' });
+                    loopScrollIfNeeded();
+                }, 16);
+            };
+
+            const stopHoldScroll = () => {
+                clearInterval(holdInterval);
+                scheduleResume(250);
+            };
+
+            leftBtn.addEventListener('click', () => {
+                pause();
+                scrollWrap.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                loopScrollIfNeeded();
+                scheduleResume(350);
+            });
+
+            rightBtn.addEventListener('click', () => {
+                pause();
+                scrollWrap.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                loopScrollIfNeeded();
+                scheduleResume(350);
+            });
+
+            leftBtn.addEventListener('pointerdown', () => startHoldScroll(-1));
+            rightBtn.addEventListener('pointerdown', () => startHoldScroll(1));
+            ['pointerup', 'pointerleave'].forEach(evt => {
+                leftBtn.addEventListener(evt, stopHoldScroll);
+                rightBtn.addEventListener(evt, stopHoldScroll);
+            });
         }
     }
 
@@ -255,64 +395,59 @@ class ModernCarousel {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 const carousel = entry.target;
-                const userInteracting = carousel.dataset.userInteracting === 'true';
+
+                if (carousel.classList.contains('products-carousel') && carousel._scrollState) {
+                    carousel._scrollState.isVisible = entry.isIntersecting;
+                    return;
+                }
+
+                const userStopped = carousel.dataset.userStopped === 'true';
                 if (entry.isIntersecting) {
-                    // Only resume if user is not interacting
-                    if (!userInteracting) {
+                    if (!userStopped) {
                         carousel.style.animationPlayState = 'running';
                     }
                 } else {
-                    // Pause animation when not visible for performance
                     carousel.style.animationPlayState = 'paused';
                 }
             });
-        }, {
-            threshold: 0.1
-        });
+        }, { threshold: 0.1 });
 
-        this.carousels.forEach(carousel => {
-            observer.observe(carousel);
-        });
+        this.carousels.forEach(carousel => observer.observe(carousel));
     }
 
     setupResizeHandler() {
         let resizeTimeout;
-        
         window.addEventListener('resize', () => {
             clearTimeout(resizeTimeout);
             resizeTimeout = setTimeout(() => {
-                this.adjustCarouselSpeeds();
+                this.carousels.forEach(carousel => {
+                    if (carousel.classList.contains('products-carousel')) {
+                        this.setProductsSpeed(carousel);
+                    } else {
+                        this.adjustTestimonialSpeed(carousel);
+                    }
+                });
             }, 250);
         });
     }
 
-    adjustCarouselSpeeds() {
+    adjustTestimonialSpeed(carousel) {
         const screenWidth = window.innerWidth;
-        
+        if (screenWidth < 768) {
+            carousel.style.animationDuration = '50s';
+        } else if (screenWidth < 1024) {
+            carousel.style.animationDuration = '65s';
+        } else {
+            carousel.style.animationDuration = '80s';
+        }
+    }
+
+    adjustCarouselSpeeds() {
         this.carousels.forEach(carousel => {
-            const isProducts = carousel.classList.contains('products-carousel');
-            const isTestimonials = carousel.classList.contains('testimonials-carousel');
-            
-            // Adjust animation duration based on screen size
-            if (screenWidth < 768) {
-                if (isProducts) {
-                    carousel.style.animationDuration = '40s';
-                } else if (isTestimonials) {
-                    carousel.style.animationDuration = '50s';
-                }
-            } else if (screenWidth < 1024) {
-                if (isProducts) {
-                    carousel.style.animationDuration = '50s';
-                } else if (isTestimonials) {
-                    carousel.style.animationDuration = '65s';
-                }
+            if (carousel.classList.contains('products-carousel')) {
+                this.setProductsSpeed(carousel);
             } else {
-                // Reset to default speeds for larger screens
-                if (isProducts) {
-                    carousel.style.animationDuration = '60s';
-                } else if (isTestimonials) {
-                    carousel.style.animationDuration = '80s';
-                }
+                this.adjustTestimonialSpeed(carousel);
             }
         });
     }
@@ -333,7 +468,9 @@ class SmoothScrollEnhancer {
 
     addMomentumScrolling(element) {
         element.style.webkitOverflowScrolling = 'touch';
-        element.style.scrollBehavior = 'smooth';
+        if (!element.classList.contains('products-carousel-scroll')) {
+            element.style.scrollBehavior = 'smooth';
+        }
     }
 }
 
@@ -392,13 +529,14 @@ new CarouselPerformanceMonitor();
 const navToggle = document.getElementById('nav-toggle');
 const navMenu = document.getElementById('nav-menu');
 
-navToggle.addEventListener('click', () => {
-    navMenu.classList.toggle('active');
-    
-    // Animate hamburger menu
+function setMenuOpen(isOpen) {
+    if (!navMenu || !navToggle) return;
+    navMenu.classList.toggle('active', isOpen);
+    navToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+
     const bars = navToggle.querySelectorAll('.bar');
     bars.forEach((bar, index) => {
-        if (navMenu.classList.contains('active')) {
+        if (isOpen) {
             if (index === 0) bar.style.transform = 'rotate(45deg) translate(5px, 5px)';
             if (index === 1) bar.style.opacity = '0';
             if (index === 2) bar.style.transform = 'rotate(-45deg) translate(7px, -6px)';
@@ -407,17 +545,26 @@ navToggle.addEventListener('click', () => {
             bar.style.opacity = '1';
         }
     });
-});
+}
+
+if (navToggle && navMenu) {
+    navToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setMenuOpen(!navMenu.classList.contains('active'));
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!navMenu.classList.contains('active')) return;
+        if (!e.target.closest('.navbar')) {
+            setMenuOpen(false);
+        }
+    });
+}
 
 // Close mobile menu when clicking on a link
-document.querySelectorAll('.nav-link').forEach(link => {
+document.querySelectorAll('.nav-link, .nav-cta').forEach(link => {
     link.addEventListener('click', () => {
-        navMenu.classList.remove('active');
-        const bars = navToggle.querySelectorAll('.bar');
-        bars.forEach(bar => {
-            bar.style.transform = 'none';
-            bar.style.opacity = '1';
-        });
+        setMenuOpen(false);
     });
 });
 
@@ -427,7 +574,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         e.preventDefault();
         const target = document.querySelector(this.getAttribute('href'));
         if (target) {
-            const offsetTop = target.offsetTop - 70; // Account for fixed navbar
+            const offsetTop = target.offsetTop - 80;
             window.scrollTo({
                 top: offsetTop,
                 behavior: 'smooth'
@@ -436,22 +583,11 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
-// Navbar background change on scroll
+// Navbar scroll state
 window.addEventListener('scroll', () => {
-    const navbar = document.querySelector('.navbar');
-    if (window.scrollY > 50) {
-        navbar.style.background = 'rgba(15, 23, 42, 0.9)';
-        navbar.style.backdropFilter = 'blur(30px)';
-        navbar.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(96, 165, 250, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15)';
-        navbar.style.borderColor = 'rgba(148, 163, 184, 0.3)';
-        navbar.style.transform = 'translateX(-50%) scale(0.98)';
-    } else {
-        navbar.style.background = 'rgba(15, 23, 42, 0.8)';
-        navbar.style.backdropFilter = 'blur(25px)';
-        navbar.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(96, 165, 250, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
-        navbar.style.borderColor = 'rgba(148, 163, 184, 0.2)';
-        navbar.style.transform = 'translateX(-50%) scale(1)';
-    }
+    const navbar = document.getElementById('navbar');
+    if (!navbar) return;
+    navbar.classList.toggle('scrolled', window.scrollY > 50);
 });
 
 // Logo Preview Modal Functionality
@@ -499,71 +635,22 @@ class LogoPreviewModal {
     openModal() {
         this.isOpen = true;
         this.modal.classList.add('active');
+        this.modal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
-        
-        // Add elegant entrance animation
-        setTimeout(() => {
-            const logoImage = document.querySelector('.logo-preview-image');
-            const logoInfo = document.querySelector('.logo-preview-info');
-            
-            logoImage.style.animation = 'modalLogoEntrance 0.6s ease-out forwards';
-            logoInfo.style.animation = 'modalInfoEntrance 0.8s ease-out 0.2s forwards';
-        }, 100);
     }
-    
+
     closeModal() {
         this.isOpen = false;
         this.modal.classList.remove('active');
+        this.modal.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
-        
-        // Reset animations
-        setTimeout(() => {
-            const logoImage = document.querySelector('.logo-preview-image');
-            const logoInfo = document.querySelector('.logo-preview-info');
-            
-            logoImage.style.animation = '';
-            logoInfo.style.animation = '';
-        }, 400);
     }
 }
 
 // Initialize logo preview modal
 new LogoPreviewModal();
 
-// Typing animation for hero title
-function typeWriter(element, text, speed = 100) {
-    let i = 0;
-    element.innerHTML = '';
-    
-    function type() {
-        if (i < text.length) {
-            element.innerHTML += text.charAt(i);
-            i++;
-            setTimeout(type, speed);
-        }
-    }
-    type();
-}
-
-// Initialize typing animation when page loads
-window.addEventListener('load', () => {
-    const heroTitle = document.querySelector('.gradient-text');
-    if (heroTitle) {
-        const originalText = heroTitle.textContent;
-        typeWriter(heroTitle, originalText, 80);
-    }
-});
-
-// Parallax effect for hero section
-window.addEventListener('scroll', () => {
-    const scrolled = window.pageYOffset;
-    const parallaxElements = document.querySelectorAll('.floating-card');
-    
-    parallaxElements.forEach((element, index) => {
-        const speed = 0.5 + (index * 0.1);
-        element.style.transform = `translateY(${scrolled * speed}px)`;
-    });
-});
+// Hero entrance uses CSS animations — no typewriter
 
 // Counter animation for product stats
 function animateCounter(element, target, duration = 2000) {
@@ -623,39 +710,6 @@ function createFloatingAnimation() {
 
 // Initialize floating animation
 createFloatingAnimation();
-
-// Form submission handling
-const contactForm = document.querySelector('.contact-form form');
-if (contactForm) {
-    contactForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Get form data
-        const formData = new FormData(this);
-        const name = this.querySelector('input[type="text"]').value;
-        const email = this.querySelector('input[type="email"]').value;
-        const message = this.querySelector('textarea').value;
-        
-        // Simple validation
-        if (!name || !email || !message) {
-            showNotification('Please fill in all fields', 'error');
-            return;
-        }
-        
-        // Simulate form submission
-        const submitBtn = this.querySelector('.btn-primary');
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = 'Sending...';
-        submitBtn.disabled = true;
-        
-        setTimeout(() => {
-            submitBtn.textContent = originalText;
-            submitBtn.disabled = false;
-            this.reset();
-            showNotification('Message sent successfully!', 'success');
-        }, 2000);
-    });
-}
 
 // Notification system
 function showNotification(message, type = 'info') {
@@ -793,12 +847,12 @@ function lazyLoadImages() {
 // Initialize lazy loading
 lazyLoadImages();
 
-// Add hover effects for interactive elements
-document.querySelectorAll('.product-card, .testimonial-card').forEach(card => {
+// Add hover effects for testimonial cards only (product cards use CSS)
+document.querySelectorAll('.testimonial-card').forEach(card => {
     card.addEventListener('mouseenter', function() {
         this.style.transform = 'translateY(-10px) scale(1.02)';
     });
-    
+
     card.addEventListener('mouseleave', function() {
         this.style.transform = 'translateY(0) scale(1)';
     });
