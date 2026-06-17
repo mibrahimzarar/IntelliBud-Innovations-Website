@@ -62,9 +62,11 @@ class ModernCarousel {
             lastTime: 0,
             rafId: null,
             pointerMoved: false,
-            pointerStartX: 0
+            pointerStartX: 0,
+            pointerStartY: 0
         };
         carousel._scrollState = state;
+        carousel._visibilityTarget = scrollWrap;
 
         const measure = () => {
             state.halfWidth = carousel.scrollWidth / 2;
@@ -105,6 +107,14 @@ class ModernCarousel {
             clearTimeout(state.resumeTimeout);
         };
 
+        const endAutoScroll = () => {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    state.isAutoScrolling = false;
+                });
+            });
+        };
+
         const tick = (now) => {
             if (!state.lastTime) state.lastTime = now;
             const delta = now - state.lastTime;
@@ -115,9 +125,7 @@ class ModernCarousel {
                 state.isAutoScrolling = true;
                 scrollWrap.scrollLeft += state.pxPerMs * delta;
                 loopScroll();
-                requestAnimationFrame(() => {
-                    state.isAutoScrolling = false;
-                });
+                endAutoScroll();
             }
 
             state.rafId = requestAnimationFrame(tick);
@@ -134,10 +142,6 @@ class ModernCarousel {
 
         scrollWrap.addEventListener('scroll', () => {
             loopScroll();
-            if (!state.isLooping && !state.isAutoScrolling) {
-                pauseAuto();
-                scheduleResume();
-            }
         }, { passive: true });
 
         scrollWrap.addEventListener('wheel', (e) => {
@@ -148,22 +152,53 @@ class ModernCarousel {
             }
         }, { passive: true });
 
-        scrollWrap.addEventListener('touchstart', () => pauseAuto(), { passive: true });
-        scrollWrap.addEventListener('touchend', () => scheduleResume(800), { passive: true });
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchIsHorizontal = false;
 
-        scrollWrap.addEventListener('pointerdown', (e) => {
-            state.pointerStartX = e.clientX;
-            state.pointerMoved = false;
-            pauseAuto();
-        });
+        scrollWrap.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            touchIsHorizontal = false;
+        }, { passive: true });
 
-        scrollWrap.addEventListener('pointermove', (e) => {
-            if (Math.abs(e.clientX - state.pointerStartX) > 8) {
-                state.pointerMoved = true;
+        scrollWrap.addEventListener('touchmove', (e) => {
+            if (!touchStartX) return;
+            const dx = Math.abs(e.touches[0].clientX - touchStartX);
+            const dy = Math.abs(e.touches[0].clientY - touchStartY);
+            if (dx > 10 && dx > dy * 1.2) {
+                if (!touchIsHorizontal) pauseAuto();
+                touchIsHorizontal = true;
             }
         }, { passive: true });
 
-        scrollWrap.addEventListener('pointerup', () => scheduleResume(600));
+        scrollWrap.addEventListener('touchend', () => {
+            if (touchIsHorizontal) scheduleResume(800);
+            touchStartX = 0;
+            touchStartY = 0;
+            touchIsHorizontal = false;
+        }, { passive: true });
+
+        scrollWrap.addEventListener('pointerdown', (e) => {
+            state.pointerStartX = e.clientX;
+            state.pointerStartY = e.clientY;
+            state.pointerMoved = false;
+        });
+
+        scrollWrap.addEventListener('pointermove', (e) => {
+            if (state.pointerMoved) return;
+            const dx = Math.abs(e.clientX - state.pointerStartX);
+            const dy = Math.abs(e.clientY - (state.pointerStartY || e.clientY));
+            if (dx > 10 && dx > dy * 1.2) {
+                state.pointerMoved = true;
+                pauseAuto();
+            }
+        }, { passive: true });
+
+        scrollWrap.addEventListener('pointerup', () => {
+            if (state.pointerMoved) scheduleResume(600);
+            state.pointerMoved = false;
+        });
 
         carousel.addEventListener('click', (e) => {
             if (state.pointerMoved) return;
@@ -384,25 +419,39 @@ class ModernCarousel {
     setupIntersectionObserver() {
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                const carousel = entry.target;
+                const target = entry.target;
+                const carousel = target.classList.contains('products-carousel')
+                    ? target
+                    : target.closest('.carousel-track') || target.querySelector?.('.products-carousel');
 
-                if (carousel.classList.contains('products-carousel') && carousel._scrollState) {
+                if (carousel?.classList.contains('products-carousel') && carousel._scrollState) {
                     carousel._scrollState.isVisible = entry.isIntersecting;
+                    if (entry.isIntersecting && carousel._remeasure) {
+                        carousel._remeasure();
+                    }
                     return;
                 }
 
-                const userStopped = carousel.dataset.userStopped === 'true';
+                const track = target.classList.contains('carousel-track')
+                    ? target
+                    : target.closest('.carousel-track');
+                if (!track) return;
+
+                const userStopped = track.dataset.userStopped === 'true';
                 if (entry.isIntersecting) {
                     if (!userStopped) {
-                        carousel.style.animationPlayState = 'running';
+                        track.style.animationPlayState = 'running';
                     }
                 } else {
-                    carousel.style.animationPlayState = 'paused';
+                    track.style.animationPlayState = 'paused';
                 }
             });
         }, { threshold: 0.1 });
 
-        this.carousels.forEach(carousel => observer.observe(carousel));
+        this.carousels.forEach(carousel => {
+            const target = carousel._visibilityTarget || carousel;
+            observer.observe(target);
+        });
     }
 
     setupResizeHandler() {
