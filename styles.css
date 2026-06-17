@@ -464,6 +464,8 @@ body::before {
     color: white;
     position: relative;
     overflow: hidden;
+    padding-top: calc(18px + 72px + 3rem);
+    padding-bottom: clamp(4rem, 8vh, 6.5rem);
 }
 
 .hero::before {
@@ -518,7 +520,7 @@ body::before {
 .hero-title {
     font-size: clamp(2.6rem, 5vw, 4.1rem);
     font-weight: 700;
-    margin-top: 5.5rem;
+    margin-top: 0;
     margin-bottom: 1.75rem;
     line-height: 1.05;
     letter-spacing: -0.035em;
@@ -2028,11 +2030,6 @@ body::before {
     box-shadow: 0 4px 16px rgba(139, 92, 246, 0.35);
 }
 
-.contact-btn-whatsapp .contact-btn-icon {
-    background: linear-gradient(135deg, #25d366, #128c7e);
-    box-shadow: 0 4px 16px rgba(37, 211, 102, 0.3);
-}
-
 .contact-btn-text {
     flex: 1;
     display: flex;
@@ -2068,10 +2065,6 @@ body::before {
 .contact-btn:hover .contact-btn-arrow {
     color: #a78bfa;
     transform: translateX(4px);
-}
-
-.contact-btn-whatsapp:hover .contact-btn-arrow {
-    color: #25d366;
 }
 
 /* Footer */
@@ -2580,6 +2573,11 @@ body::before {
 
 /* Mobile Styles */
 @media (max-width: 768px) {
+    .hero {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+
     .navbar {
         top: max(12px, env(safe-area-inset-top, 0px));
         width: calc(100% - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
