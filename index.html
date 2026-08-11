@@ -35,6 +35,21 @@
             document.body.insertBefore(gtmNoScript, document.body.firstChild);
         })();
     </script>
+
+    <!-- Logo Loader -->
+    <div id="logo-loader" class="logo-modal logo-loader active" aria-hidden="false" aria-busy="true">
+        <div class="logo-modal-backdrop"></div>
+        <div class="logo-loader-inner" role="status" aria-live="polite">
+            <div class="logo-preview-ring">
+                <img
+                    src="images/Animated_Video.gif"
+                    alt="IntelliBud Innovations Logo"
+                    class="preview-logo logo-loader-image"
+                >
+            </div>
+            <h2 class="logo-preview-title logo-loader-title">IntelliBud Innovations</h2>
+        </div>
+    </div>
      
     <!-- Navigation -->
     <nav class="navbar" id="navbar">
@@ -43,7 +58,11 @@
         <div class="nav-container">
             <div class="nav-logo">
                 <div class="nav-logo-ring">
-                    <img src="images/3D Logo.png" alt="IntelliBud Innovations Logo" class="logo-image">
+                    <img
+                        src="images/3D Logo.png"
+                        alt="IntelliBud Innovations Logo"
+                        class="logo-image"
+                    >
                 </div>
                 <div class="nav-brand-text">
                     <span class="logo-text">IntelliBud</span>
@@ -91,21 +110,21 @@
                         <div class="floating-card-icon">
                             <i class="fas fa-mobile-alt"></i>
                         </div>
-                        <span class="floating-card-label">Mobile Apps</span>
+                        <span class="floating-card-label">Mobile App</span>
                     </div>
                     <div class="floating-card card-2">
                         <div class="floating-card-glow"></div>
                         <div class="floating-card-icon">
                             <i class="fas fa-globe"></i>
                         </div>
-                        <span class="floating-card-label">Web Apps</span>
+                        <span class="floating-card-label">Web App</span>
                     </div>
                     <div class="floating-card card-3">
                         <div class="floating-card-glow"></div>
                         <div class="floating-card-icon">
-                            <i class="fas fa-rocket"></i>
+                            <i class="fas fa-desktop"></i>
                         </div>
-                        <span class="floating-card-label">Innovation</span>
+                        <span class="floating-card-label">Desktop App</span>
                     </div>
                 </div>
             </div>
@@ -195,6 +214,11 @@
             </div>
         </div>
         <div class="carousel-container">
+            <div class="carousel-scroll-hint" aria-hidden="true">
+                <span class="carousel-scroll-hint-arrow">
+                    <i class="fas fa-arrow-right"></i>
+                </span>
+            </div>
             <div class="carousel-track products-carousel" data-direction="right">
                 <div class="product-card">
                     <div class="product-image">
@@ -204,6 +228,10 @@
                     <div class="product-content">
                         <h3>Sunnah Way App</h3>
                         <p>A comprehensive Islamic lifestyle application that helps users maintain and track their Sunnah habits through engaging streak systems, fostering spiritual growth and consistency in daily practices.</p>
+                        <a href="https://sunnahway.app" class="product-link" target="_blank" rel="noopener noreferrer">
+                            <span>Visit Site</span>
+                            <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                        </a>
                     </div>
                 </div>
                 <div class="product-card">
@@ -214,6 +242,10 @@
                     <div class="product-content">
                         <h3>Quietly</h3>
                         <p>An offline AI IDE and chat companion for Windows, macOS, and Linux. Everything stays on your machine: no cloud, no telemetry, no compromise.</p>
+                        <a href="https://www.quietlycode.org/" class="product-link" target="_blank" rel="noopener noreferrer">
+                            <span>Visit Site</span>
+                            <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                        </a>
                     </div>
                 </div>
                 <div class="product-card">
@@ -224,6 +256,10 @@
                     <div class="product-content">
                         <h3>Clientist App</h3>
                         <p>A universal client management application designed for every industry. Organize contacts, track interactions, manage appointments, and nurture client relationships all in one powerful platform.</p>
+                        <a href="https://clientist.netlify.app/" class="product-link" target="_blank" rel="noopener noreferrer">
+                            <span>Visit Site</span>
+                            <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                        </a>
                     </div>
                 </div>
                 <div class="product-card">
@@ -234,6 +270,10 @@
                     <div class="product-content">
                         <h3>PropertyLime App</h3>
                         <p>An extensive property management solution that streamlines real estate operations, tenant management, maintenance tracking, and financial reporting for property owners and managers.</p>
+                        <a href="https://property-lime-app.netlify.app/" class="product-link" target="_blank" rel="noopener noreferrer">
+                            <span>Visit Site</span>
+                            <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                        </a>
                     </div>
                 </div>
 
@@ -245,6 +285,10 @@
                     <div class="product-content">
                         <h3>Dar-ul-Falah Travels</h3>
                         <p>A sophisticated Umrah package calculation system and comprehensive travel website that provides customized pilgrimage solutions with detailed cost analysis.</p>
+                        <a href="https://darulfalahpk.com/" class="product-link" target="_blank" rel="noopener noreferrer">
+                            <span>Visit Site</span>
+                            <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                        </a>
                     </div>
                 </div>
 
@@ -256,6 +300,10 @@
                     <div class="product-content">
                         <h3>The Mall Apartments</h3>
                         <p>An extensive apartment management system with integrated website solution that handles resident services, maintenance requests and  seperate resident accounts.</p>
+                        <a href="https://themallapartments.netlify.app/" class="product-link" target="_blank" rel="noopener noreferrer">
+                            <span>Visit Site</span>
+                            <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                        </a>
                     </div>
                 </div>
                 <div class="product-card">
@@ -266,9 +314,12 @@
                     <div class="product-content">
                         <h3>Hotel Deck</h3>
                         <p>A comprehensive travel agent marketplace with centralized hotel and room booking services focused on Makkah and Madinah.</p>
+                        <a href="https://hotel-deck-f50be914.base44.app/" class="product-link" target="_blank" rel="noopener noreferrer">
+                            <span>Visit Site</span>
+                            <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                        </a>
                     </div>
                 </div>
-
             </div>
             <div class="carousel-fade carousel-fade-left"></div>
             <div class="carousel-fade carousel-fade-right"></div>
@@ -303,7 +354,11 @@
         <div class="container">
             <div class="footer-brand">
                 <div class="footer-logo-wrap">
-                    <img src="images/3D Logo.png" alt="IntelliBud Innovations Logo" class="footer-logo-image">
+                    <img
+                        src="images/3D Logo.png"
+                        alt="IntelliBud Innovations Logo"
+                        class="footer-logo-image"
+                    >
                 </div>
                 <h3 class="footer-brand-name">IntelliBud Innovations</h3>
                 <p class="footer-tagline">From Imagination to Innovation</p>
@@ -328,7 +383,14 @@
             </button>
             <div class="logo-preview-container">
                 <div class="logo-preview-ring">
-                    <img src="images/3D Logo.png" alt="IntelliBud Innovations Logo" class="preview-logo">
+                    <img
+                        src="images/3D Logo.png"
+                        data-logo-animated="images/Animated_Video.gif"
+                        data-logo-static="images/3D Logo.png"
+                        data-logo-autoplay="manual"
+                        alt="IntelliBud Innovations Logo"
+                        class="preview-logo logo-animated"
+                    >
                 </div>
                 <div class="logo-preview-info">
                     <h2 id="logo-modal-title" class="logo-preview-title">IntelliBud Innovations</h2>

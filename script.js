@@ -18,13 +18,6 @@ class ModernCarousel {
         this.setupResizeHandler();
     }
 
-    getProductsDuration() {
-        const w = window.innerWidth;
-        if (w < 768) return 45000;
-        if (w < 1024) return 55000;
-        return 70000;
-    }
-
     setupProductsCarousel(carousel) {
         const originalCards = [...carousel.querySelectorAll('.product-card')];
         originalCards.forEach(card => {
@@ -52,15 +45,8 @@ class ModernCarousel {
         carousel.style.transform = '';
 
         const state = {
-            autoScrollActive: true,
-            isVisible: true,
             isLooping: false,
-            isAutoScrolling: false,
-            pxPerMs: 0,
             halfWidth: 0,
-            resumeTimeout: null,
-            lastTime: 0,
-            rafId: null,
             pointerMoved: false,
             pointerStartX: 0,
             pointerStartY: 0
@@ -70,7 +56,6 @@ class ModernCarousel {
 
         const measure = () => {
             state.halfWidth = carousel.scrollWidth / 2;
-            state.pxPerMs = state.halfWidth > 0 ? state.halfWidth / this.getProductsDuration() : 0;
         };
 
         const loopScroll = () => {
@@ -87,96 +72,15 @@ class ModernCarousel {
             }
         };
 
-        const pauseAuto = () => {
-            state.autoScrollActive = false;
-            clearTimeout(state.resumeTimeout);
-        };
-
-        const scheduleResume = (delay = 800) => {
-            if (carousel.dataset.userStopped === 'true') return;
-            clearTimeout(state.resumeTimeout);
-            state.resumeTimeout = setTimeout(() => {
-                state.autoScrollActive = true;
-                state.lastTime = performance.now();
-            }, delay);
-        };
-
-        const resumeAuto = () => {
-            state.autoScrollActive = true;
-            state.lastTime = performance.now();
-            clearTimeout(state.resumeTimeout);
-        };
-
-        const endAutoScroll = () => {
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    state.isAutoScrolling = false;
-                });
-            });
-        };
-
-        const tick = (now) => {
-            if (!state.lastTime) state.lastTime = now;
-            const delta = now - state.lastTime;
-            state.lastTime = now;
-
-            if (state.autoScrollActive && state.isVisible &&
-                carousel.dataset.userStopped !== 'true' && state.halfWidth > 0) {
-                state.isAutoScrolling = true;
-                scrollWrap.scrollLeft += state.pxPerMs * delta;
-                loopScroll();
-                endAutoScroll();
-            }
-
-            state.rafId = requestAnimationFrame(tick);
-        };
-
         carousel._remeasure = measure;
 
         requestAnimationFrame(() => {
             measure();
             scrollWrap.scrollLeft = 0;
-            state.lastTime = performance.now();
-            state.rafId = requestAnimationFrame(tick);
         });
 
         scrollWrap.addEventListener('scroll', () => {
             loopScroll();
-        }, { passive: true });
-
-        scrollWrap.addEventListener('wheel', (e) => {
-            const isHorizontal = Math.abs(e.deltaX) > Math.abs(e.deltaY) || e.shiftKey;
-            if (isHorizontal) {
-                pauseAuto();
-                scheduleResume(1000);
-            }
-        }, { passive: true });
-
-        let touchStartX = 0;
-        let touchStartY = 0;
-        let touchIsHorizontal = false;
-
-        scrollWrap.addEventListener('touchstart', (e) => {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-            touchIsHorizontal = false;
-        }, { passive: true });
-
-        scrollWrap.addEventListener('touchmove', (e) => {
-            if (!touchStartX) return;
-            const dx = Math.abs(e.touches[0].clientX - touchStartX);
-            const dy = Math.abs(e.touches[0].clientY - touchStartY);
-            if (dx > 10 && dx > dy * 1.2) {
-                if (!touchIsHorizontal) pauseAuto();
-                touchIsHorizontal = true;
-            }
-        }, { passive: true });
-
-        scrollWrap.addEventListener('touchend', () => {
-            if (touchIsHorizontal) scheduleResume(800);
-            touchStartX = 0;
-            touchStartY = 0;
-            touchIsHorizontal = false;
         }, { passive: true });
 
         scrollWrap.addEventListener('pointerdown', (e) => {
@@ -191,17 +95,16 @@ class ModernCarousel {
             const dy = Math.abs(e.clientY - (state.pointerStartY || e.clientY));
             if (dx > 10 && dx > dy * 1.2) {
                 state.pointerMoved = true;
-                pauseAuto();
             }
         }, { passive: true });
 
         scrollWrap.addEventListener('pointerup', () => {
-            if (state.pointerMoved) scheduleResume(600);
             state.pointerMoved = false;
         });
 
         carousel.addEventListener('click', (e) => {
             if (state.pointerMoved) return;
+            if (e.target.closest('.product-link')) return;
 
             const card = e.target.closest('.product-card');
             if (!card) return;
@@ -210,7 +113,6 @@ class ModernCarousel {
                 carousel.querySelectorAll('.product-card').forEach(c => c.classList.remove('is-selected'));
                 carousel.classList.remove('is-paused', 'user-stopped');
                 carousel.dataset.userStopped = 'false';
-                resumeAuto();
                 return;
             }
 
@@ -218,7 +120,6 @@ class ModernCarousel {
             card.classList.add('is-selected');
             carousel.classList.add('is-paused', 'user-stopped');
             carousel.dataset.userStopped = 'true';
-            pauseAuto();
         });
     }
 
@@ -424,9 +325,8 @@ class ModernCarousel {
                     ? target
                     : target.closest('.carousel-track') || target.querySelector?.('.products-carousel');
 
-                if (carousel?.classList.contains('products-carousel') && carousel._scrollState) {
-                    carousel._scrollState.isVisible = entry.isIntersecting;
-                    if (entry.isIntersecting && carousel._remeasure) {
+                if (carousel?.classList.contains('products-carousel') && carousel._remeasure) {
+                    if (entry.isIntersecting) {
                         carousel._remeasure();
                     }
                     return;
@@ -638,6 +538,100 @@ window.addEventListener('scroll', () => {
     navbar.classList.toggle('scrolled', window.scrollY > 50);
 });
 
+// Animated logo — play GIF once, then swap to static image
+const LOGO_ANIM_DURATION_MS = 5870;
+const LOGO_LOADER_DURATION_MS = LOGO_ANIM_DURATION_MS - 1000;
+const LOGO_ANIMATED_SRC = 'images/Animated_Video.gif';
+const LOGO_STATIC_SRC = 'images/3D Logo.png';
+
+function playLogoOnce(img) {
+    if (!img || img.dataset.logoPlaying === 'true') return;
+
+    const staticSrc = img.dataset.logoStatic || LOGO_STATIC_SRC;
+    const animatedSrc = img.dataset.logoAnimated || LOGO_ANIMATED_SRC;
+    if (!staticSrc || !animatedSrc) return;
+
+    if (img._logoTimer) {
+        clearTimeout(img._logoTimer);
+    }
+
+    img.dataset.logoPlaying = 'true';
+    img.dataset.logoPlayed = 'true';
+
+    const finish = () => {
+        img.src = staticSrc;
+        img.dataset.logoPlaying = 'false';
+    };
+
+    const start = () => {
+        img.src = `${animatedSrc}?t=${Date.now()}`;
+        img._logoTimer = setTimeout(finish, LOGO_ANIM_DURATION_MS);
+    };
+
+    if (img.complete) {
+        start();
+    } else {
+        img.addEventListener('load', start, { once: true });
+    }
+}
+
+function initLogoLoader() {
+    const loader = document.getElementById('logo-loader');
+    if (!loader) return;
+
+    document.body.classList.add('loader-active');
+
+    const img = loader.querySelector('.logo-loader-image');
+    const dismiss = () => {
+        loader.classList.add('closing');
+        loader.setAttribute('aria-hidden', 'true');
+        loader.setAttribute('aria-busy', 'false');
+        document.body.classList.remove('loader-active');
+
+        window.setTimeout(() => {
+            loader.remove();
+        }, 450);
+    };
+
+    const startPlayback = () => {
+        img.src = `${LOGO_ANIMATED_SRC}?t=${Date.now()}`;
+        window.setTimeout(dismiss, LOGO_LOADER_DURATION_MS);
+    };
+
+    if (img.complete) {
+        startPlayback();
+    } else {
+        img.addEventListener('load', startPlayback, { once: true });
+    }
+}
+
+function initAnimatedLogos() {
+    document.querySelectorAll('.logo-animated').forEach((img) => {
+        const autoplay = img.dataset.logoAutoplay || 'immediate';
+
+        if (autoplay === 'visible') {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting && img.dataset.logoPlayed !== 'true') {
+                        playLogoOnce(img);
+                        observer.disconnect();
+                    }
+                });
+            }, { threshold: 0.4 });
+
+            observer.observe(img);
+            return;
+        }
+
+        if (autoplay === 'manual') return;
+
+        playLogoOnce(img);
+    });
+}
+
+initLogoLoader();
+initAnimatedLogos();
+
 // Logo Preview Modal Functionality
 class LogoPreviewModal {
     constructor() {
@@ -675,7 +669,7 @@ class LogoPreviewModal {
         });
         
         // Prevent modal content clicks from closing modal
-        document.querySelector('.logo-modal-content').addEventListener('click', (e) => {
+        this.modal.querySelector('.logo-modal-content').addEventListener('click', (e) => {
             e.stopPropagation();
         });
     }
@@ -685,6 +679,13 @@ class LogoPreviewModal {
         this.modal.classList.add('active');
         this.modal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
+
+        const previewLogo = this.modal.querySelector('.preview-logo');
+        if (previewLogo) {
+            previewLogo.dataset.logoPlayed = '';
+            previewLogo.dataset.logoPlaying = 'false';
+            playLogoOnce(previewLogo);
+        }
     }
 
     closeModal() {
@@ -743,21 +744,6 @@ const counterObserver = new IntersectionObserver((entries) => {
 document.querySelectorAll('.product-card').forEach(card => {
     counterObserver.observe(card);
 });
-
-// Floating animation for hero cards
-function createFloatingAnimation() {
-    const cards = document.querySelectorAll('.floating-card');
-    cards.forEach((card, index) => {
-        const randomDelay = Math.random() * 2;
-        const randomDuration = 4 + Math.random() * 2;
-        
-        card.style.animationDelay = `${randomDelay}s`;
-        card.style.animationDuration = `${randomDuration}s`;
-    });
-}
-
-// Initialize floating animation
-createFloatingAnimation();
 
 // Notification system
 function showNotification(message, type = 'info') {
@@ -995,4 +981,3 @@ window.addEventListener('scroll', throttle(() => {
     // Existing scroll handlers are already optimized
 }, 16)); // ~60fps
 
-console.log('🚀 MindBud Innovations website loaded successfully!');
