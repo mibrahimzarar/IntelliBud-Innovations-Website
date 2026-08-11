@@ -2662,10 +2662,19 @@ body.loader-active {
     transform: scale(1);
 }
 
-.logo-loader-title {
-    margin: 0;
-    opacity: 1;
-    transform: none;
+.logo-loader .logo-preview-ring::before {
+    inset: -2px;
+    opacity: 0.65;
+}
+
+.logo-loader .logo-preview-ring::after {
+    inset: -16px;
+    filter: blur(8px);
+}
+
+.logo-loader .logo-loader-image {
+    border-width: 1.5px;
+    box-shadow: 0 6px 24px rgba(139, 92, 246, 0.22);
 }
 
 .logo-loader.closing {

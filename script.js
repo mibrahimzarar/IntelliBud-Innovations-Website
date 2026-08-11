@@ -539,7 +539,7 @@ window.addEventListener('scroll', () => {
 });
 
 // Animated logo — play GIF once, then swap to static image
-const LOGO_ANIM_DURATION_MS = 5870;
+const LOGO_ANIM_DURATION_MS = 4000;
 const LOGO_LOADER_DURATION_MS = LOGO_ANIM_DURATION_MS - 1000;
 const LOGO_ANIMATED_SRC = 'images/Animated_Video.gif';
 const LOGO_STATIC_SRC = 'images/3D Logo.png';
