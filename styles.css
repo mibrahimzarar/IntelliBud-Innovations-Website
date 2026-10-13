@@ -406,7 +406,7 @@ svg { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1
 
 .link-quiet:hover { color: var(--ivory); background-size: 100% 1px; }
 
-.hero-mark { justify-self: center; width: 100%; max-width: 360px; }
+.hero-mark { justify-self: end; margin-right: clamp(0px, 4vw, 72px); width: 100%; max-width: 360px; }
 
 .mark-frame {
     position: relative;
@@ -724,7 +724,7 @@ section:not(.hero) { padding: clamp(96px, 14vw, 180px) 0; border-bottom: 1px sol
 
 @media (max-width: 960px) {
     .hero-grid { grid-template-columns: 1fr; }
-    .hero-mark { justify-self: start; max-width: 320px; order: -1; }
+    .hero-mark { justify-self: start; margin-right: 0; max-width: 320px; order: -1; }
     .hero-mark figcaption { display: none; }
 
     .name-parts { grid-template-columns: 1fr; }
