@@ -1,0 +1,41 @@
+# Quietly Project Brain — optional ignore patterns (gitignore syntax).
+# Copy to `.quietignore` in a project to skip extra paths beyond builtins + `.gitignore`.
+#
+# Built-in skips already include: node_modules, .git, .quietly, dist, build, out, .next, etc.
+
+# Large / generated assets
+*.map
+*.min.js
+*.min.css
+
+# Media & binaries (usually not useful for code RAG)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.ico
+*.mp4
+*.mp3
+*.wav
+*.pdf
+*.zip
+*.tar
+*.gz
+*.7z
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Python / tooling caches
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+*.pyc
+
+# Logs
+*.log
+logs/
