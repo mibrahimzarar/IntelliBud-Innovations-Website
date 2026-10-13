@@ -324,7 +324,7 @@ svg { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1
 
 .hero-grid {
     display: grid;
-    grid-template-columns: 1.4fr 1fr;
+    grid-template-columns: auto 1fr;
     align-items: center;
     gap: clamp(40px, 6vw, 112px);
 }
@@ -406,7 +406,7 @@ svg { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1
 
 .link-quiet:hover { color: var(--ivory); background-size: 100% 1px; }
 
-.hero-mark { justify-self: end; width: 100%; max-width: 340px; }
+.hero-mark { justify-self: center; width: 100%; max-width: 360px; }
 
 .mark-frame {
     position: relative;
